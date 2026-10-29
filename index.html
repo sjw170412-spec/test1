@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통합 물리 가상 실험실</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+
+    <!-- Header Navigation -->
+    <header class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-30 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-blue-600 text-white rounded-lg shadow-md shadow-blue-500/30">
+                        <i data-lucide="atom" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight">통합 물리 가상 실험실</h1>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Interactive Physics Lab Suite</p>
+                    </div>
+                </div>
+
+                <!-- Theme & Guide Toggle (Mobile) -->
+                <div class="flex items-center space-x-2 sm:hidden">
+                    <button id="themeToggleBtnMobile" class="p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
+                        <i data-lucide="moon" class="w-4 h-4"></i>
+                    </button>
+                    <button id="openGuideBtnMobile" class="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                        <i data-lucide="book-open" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Experiment Selection Tabs -->
+            <div class="flex items-center bg-slate-200 dark:bg-slate-800 p-1 rounded-xl w-full sm:w-auto overflow-x-auto text-xs font-semibold">
+                <button data-exp="pendulum" class="exp-tab-btn flex-1 sm:flex-none px-3 py-1.5 rounded-lg transition-all flex items-center justify-center space-x-1.5 bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm">
+                    <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+                    <span>단진자</span>
+                </button>
+                <button data-exp="projectile" class="exp-tab-btn flex-1 sm:flex-none px-3 py-1.5 rounded-lg transition-all flex items-center justify-center space-x-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                    <i data-lucide="target" class="w-3.5 h-3.5"></i>
+                    <span>포탄 운동</span>
+                </button>
+                <button data-exp="spring" class="exp-tab-btn flex-1 sm:flex-none px-3 py-1.5 rounded-lg transition-all flex items-center justify-center space-x-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                    <i data-lucide="waves" class="w-3.5 h-3.5"></i>
+                    <span>용수철 진동</span>
+                </button>
+                <button data-exp="optics" class="exp-tab-btn flex-1 sm:flex-none px-3 py-1.5 rounded-lg transition-all flex items-center justify-center space-x-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                    <i data-lucide="sun" class="w-3.5 h-3.5"></i>
+                    <span>렌즈 광학</span>
+                </button>
+            </div>
+            
+            <div class="hidden sm:flex items-center space-x-2">
+                <button id="themeToggleBtn" class="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors" title="다크/라이트 모드 전환">
+                    <i id="themeIcon" data-lucide="moon" class="w-5 h-5"></i>
+                </button>
+                <button id="openGuideBtn" class="flex items-center space-x-1 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-sm font-medium transition-colors">
+                    <i data-lucide="book-open" class="w-4 h-4"></i>
+                    <span>실험 가이드</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
+        
+        <!-- Left Column: Simulation Viewport & Graph (8 cols on lg) -->
+        <div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-4">
+
+            <!-- 초보자를 위한 빠른 시작 안내 바 -->
+            <div class="bg-blue-600 text-white p-3 rounded-2xl shadow-lg flex flex-wrap items-center justify-between gap-3 animate-pulse">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">👇</span>
+                    <div>
+                        <h2 class="font-extrabold text-sm sm:text-base">어떻게 시작하나요?</h2>
+                        <p class="text-xs text-blue-100">아래 버튼 중 하나를 누르면 움직임이 시작됩니다!</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="quickStartBtn" class="px-4 py-2 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-bold rounded-xl text-xs sm:text-sm shadow transition-transform active:scale-95 flex items-center space-x-1">
+                        <span>⚡ 빠른 시작 데모</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Simulation Main Canvas Container -->
+            <div class="relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[400px] sm:h-[480px] md:h-[520px]">
+                <!-- Canvas Overlay Status Toolbar -->
+                <div class="absolute top-3 left-3 right-3 flex justify-between items-center z-10 pointer-events-none">
+                    <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-200/50 dark:border-slate-700/50 text-xs font-mono text-slate-600 dark:text-slate-300 pointer-events-auto flex gap-3 shadow-sm">
+                        <span>시간: <strong id="timeDisplay" class="text-blue-600 dark:text-blue-400">0.00</strong>s</span>
+                        <span id="expMetricDisplay">주기(T): <strong id="metricDisplayVal" class="text-emerald-600 dark:text-emerald-400">0.00</strong>s</span>
+                    </div>
+                    <div id="dragTooltip" class="bg-yellow-100 dark:bg-yellow-900/80 text-yellow-800 dark:text-yellow-200 px-3 py-1.5 rounded-lg border border-yellow-300 dark:border-yellow-700 text-xs font-bold pointer-events-auto shadow-md">
+                        👈 화면 속 물체를 드래그하여 움직여볼 수도 있어요!
+                    </div>
+                </div>
+
+                <!-- Main Physics Canvas -->
+                <canvas id="simCanvas" class="w-full h-full cursor-grab active:cursor-grabbing flex-1"></canvas>
+
+                <!-- Bottom Simulation Control Bar -->
+                <div class="p-3 bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur border-t border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2 z-10">
+                    <div class="flex items-center space-x-2">
+                        <button id="startPauseBtn" class="flex items-center justify-center space-x-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-base shadow-lg shadow-blue-500/30 transition-all active:scale-95 ring-4 ring-blue-500/20">
+                            <i id="playIcon" data-lucide="play" class="w-5 h-5 fill-current"></i>
+                            <span id="playText">▶️ 바로 시작하기</span>
+                        </button>
+                        <button id="resetBtn" class="flex items-center justify-center p-2.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl transition-colors font-bold text-xs gap-1" title="처음으로 되돌리기">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                            <span>처음 상태로</span>
+                        </button>
+                    </div>
+
+                    <!-- Speed Control Buttons -->
+                    <div class="flex items-center bg-slate-200 dark:bg-slate-700/60 p-1 rounded-lg text-xs font-semibold">
+                        <button data-speed="0.5" class="speed-btn px-2.5 py-1 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">0.5x</button>
+                        <button data-speed="1.0" class="speed-btn px-2.5 py-1 rounded-md bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm transition-colors">1.0x</button>
+                        <button data-speed="2.0" class="speed-btn px-2.5 py-1 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">2.0x</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graph Canvas Container -->
+            <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="line-chart" class="w-4 h-4 text-blue-500"></i>
+                        <h2 class="text-sm font-bold">실시간 물리량 분석 그래프</h2>
+                    </div>
+                    <select id="graphModeSelect" class="bg-slate-100 dark:bg-slate-700 border-none text-xs rounded-lg px-2.5 py-1 font-medium text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <!-- Options generated dynamically based on active experiment -->
+                    </select>
+                </div>
+                <div class="h-40 w-full relative">
+                    <canvas id="graphCanvas" class="w-full h-full rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Controls & Realtime Data (4 cols on lg) -->
+        <div class="lg:col-span-5 xl:col-span-4 flex flex-col gap-4">
+            
+            <!-- Dynamic Metrics Display -->
+            <div class="grid grid-cols-2 gap-2" id="metricsGrid">
+                <!-- Dynamically Populated Cards -->
+            </div>
+
+            <!-- Dynamic Parameter Control Panel -->
+            <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm flex-1 flex flex-col">
+                <h2 class="text-sm font-bold mb-4 flex items-center space-x-2 text-slate-800 dark:text-slate-100 border-b border-slate-100 dark:border-slate-700 pb-2">
+                    <i data-lucide="sliders" class="w-4 h-4 text-blue-500"></i>
+                    <span>실험 제어 파라미터</span>
+                </h2>
+
+                <div id="controlsContainer" class="space-y-4 text-xs sm:text-sm flex-1">
+                    <!-- Dynamic Controls Populated by Active Experiment -->
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Experiment Guide Modal Popup -->
+    <div id="guideModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button id="closeGuideBtn" class="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="flex items-center space-x-2 text-blue-600 dark:text-blue-400 mb-4">
+                <i data-lucide="book-open" class="w-6 h-6"></i>
+                <h3 id="guideTitle" class="text-lg font-bold">실험 안내서</h3>
+            </div>
+            
+            <div id="guideContent" class="space-y-4 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                <!-- Dynamically updated guide content -->
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+                <button id="confirmGuideBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm">
+                    확인 및 탐구 시작
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Simulation JavaScript -->
+    <script>
+        lucide.createIcons();
+
+        // Canvas Setup
+        const simCanvas = document.getElementById('simCanvas');
+        const sCtx = simCanvas.getContext('2d');
+        const graphCanvas = document.getElementById('graphCanvas');
+        const gCtx = graphCanvas.getContext('2d');
+
+        // Global State
+        let activeExp = 'pendulum'; // 'pendulum', 'projectile', 'spring', 'optics'
+        let isRunning = false;
+        let timeSpeed = 1.0;
+        let simTime = 0;
+        let isDragging = false;
+        let history = [];
+        const maxHistory = 400;
+
+        // Experiment Configurations & Parameters
+        const experiments = {
+            pendulum: {
+                title: "단진자 운동 실험",
+                params: { length: 2.0, mass: 1.0, gravity: 9.8, damping: 0.05, angle: Math.PI / 6, omega: 0 },
+                vectors: { gravity: true, tension: true, restoring: true, velocity: true },
+                metricsLabel: "주기(T)",
+                graphModes: [
+                    { id: 'angle', name: '시간 - 각도 (θ-t)' },
+                    { id: 'velocity', name: '시간 - 각속도 (ω-t)' },
+                    { id: 'energy', name: '시간 - 에너지 (역학적/운동/위치)' },
+                    { id: 'phase', name: '위상 공간 (각도-각속도)' }
+                ],
+                guide: `
+                    <section><h4 class="font-bold text-slate-800 dark:text-slate-100 mb-1">1. 실험 목적</h4><p>단진자의 주기(T)가 줄의 길이(L)와 중력 가속도(g)에 의해서만 결정되는 가속도 법칙을 탐구합니다.</p></section>
+                    <section><h4 class="font-bold text-slate-800 dark:text-slate-100 mb-1">2. 공식</h4><div class="p-2 bg-slate-100 dark:bg-slate-900 rounded text-center font-mono font-bold">T ≈ 2π √(L / g)</div></section>
+                    <section><h4 class="font-bold text-slate-800 dark:text-slate-100 mb-1">3. 관찰 포인트</h4><p>추의 질량을 바꾸어도 주기가 일정하게 유지되는지 관찰해 보세요.</p></section>
+                `
+            },
+            projectile: {
+                title: "포탄 운동 (포물선 운동)",
+                params: { v0: 25, angleDeg: 45, height: 0, gravity: 9.8, damping: 0.02, mass: 1.0, x: 0, y: 0, vx: 0, vy: 0 },
+                vectors: { velocity: true, components: true, gravity: true },
+                metricsLabel: "비행 시간",
+                graphModes: [
+                    { id: 'trajectory', name: '궤적 (X - Y)' },
+                    { id: 'vy_t', name: '시간 - 수직 속도 (Vy-t)' },
+                    { id: 'energy', name: '시간 - 에너지 (운동/위치/총)' }
+                ],
+                guide: `
+                    <section><h4 class="font-bold text-slate-800 dark:text-slate-100 mb-1">1. 실험 목적</h4><p>중력장에서 등속 수평 운동과 등가속도 수직 운동의 합성으로 나타나는 포물선 궤적을 분석합니다.</p></section>
+                    <section><h4 class="font-bold text-slate-800 dark:text-slate-100 mb-1">2. 최적 발사각</h4><p>공기 저항이 없을 때 최대 수평 도달 거리를 만드는 발사 각도는 45°입니다.</p></section>
+                `
+            },
+            spring: {
+                title: "용수철 단진동 (Spring Oscillator)",
+                params: { k: 25, mass: 2.0, damping: 0.1, gravity: 0, x: 1.5, v: 0 },
+                vectors: { force: true, velocity: true },
+                metricsLabel: "주기(T)",
+                graphModes: [
+                    { id: 'disp', name: '시간 - 변위 (x-t)' },
+                    { id: 'vel', name: '시간 - 속도 (v-t)' },
+                    { id: 'energy', name: '시간 - 에너지' }
+                ],
+                guide: `
+                    <section><h4 class="font-bold text-slate-800 dark:text-slate-100 mb-1">1. 실험 목적</h4><p>훅의 법칙(F = -kx)에 의한 복원력과 용수철 계의 진동 주기를 조사합니다.</p></section>
+                    <section><h4 class="font-bold text-slate-800 dark:text-slate-100 mb-1">2. 진동 주기 공식</h4><div class="p-2 bg-slate-100 dark:bg-slate-900 rounded text-center font-mono font-bold">T = 2π √(m / k)</div></section>
+                `
+            },
+            optics: {
+                title: "볼록 / 오목 렌즈 광학",
+                params: { lensType: 'convex', focalLength: 100, objectDist: 200, objectHeight: 60 },
+                vectors: {},
+                metricsLabel: "상 배율(m)",
+                graphModes: [
+                    { id: 'ray', name: '광선 추적 도식' }
+                ],
+                guide: `
+                    <section><h4 class="font-bold text-slate-800 dark:text-slate-100 mb-1">1. 렌즈 공식</h4><div class="p-2 bg-slate-100 dark:bg-slate-900 rounded text-center font-mono font-bold">1/f = 1/a + 1/b</div><p class="text-xs text-slate-500 mt-1">f: 초점거리, a: 물체거리, b: 상거리</p></section>
+                    <section><h4 class="font-bold text-slate-800 dark:text-slate-100 mb-1">2. 관찰</h4><p>물체의 위치가 초점 내부로 들어갈 때 실상에서 허상으로 변하는 현상을 관찰하세요.</p></section>
+                `
+            }
+        };
+
+        // Resize Canvas dynamically
+        function resizeCanvases() {
+            const pRect = simCanvas.parentElement.getBoundingClientRect();
+            simCanvas.width = pRect.width;
+            simCanvas.height = pRect.height;
+
+            const gRect = graphCanvas.parentElement.getBoundingClientRect();
+            graphCanvas.width = gRect.width;
+            graphCanvas.height = gRect.height;
+        }
+        window.addEventListener('resize', resizeCanvases);
+
+        // Helper Arrow Draw
+        function drawArrow(ctx, fromX, fromY, vecX, vecY, color, label) {
+            if (Math.abs(vecX) < 1 && Math.abs(vecY) < 1) return;
+            const toX = fromX + vecX;
+            const toY = fromY + vecY;
+            const headLength = 7;
+            const angle = Math.atan2(vecY, vecX);
+
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+
+            if (label) {
+                ctx.font = 'bold 11px sans-serif';
+                ctx.fillText(label, toX + 5, toY + 5);
+            }
+            ctx.restore();
+        }
+
+        // Initialize UI Controls for dynamic switching
+        function setupUIForExperiment(expKey) {
+            activeExp = expKey;
+            const config = experiments[expKey];
+            simTime = 0;
+            history = [];
+
+            // Update Metrics Display Cards
+            const metricsGrid = document.getElementById('metricsGrid');
+            if (expKey === 'pendulum') {
+                metricsGrid.innerHTML = `
+                    <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <span class="text-xs text-slate-500 font-medium">현재 각도 (θ)</span>
+                        <div id="m1Val" class="text-lg font-bold font-mono text-slate-800 dark:text-slate-100 mt-1">0.0°</div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <span class="text-xs text-slate-500 font-medium">선속도 (v)</span>
+                        <div id="m2Val" class="text-lg font-bold font-mono text-slate-800 dark:text-slate-100 mt-1">0.00 m/s</div>
+                    </div>`;
+            } else if (expKey === 'projectile') {
+                metricsGrid.innerHTML = `
+                    <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <span class="text-xs text-slate-500 font-medium">최대 높이 (H)</span>
+                        <div id="m1Val" class="text-lg font-bold font-mono text-slate-800 dark:text-slate-100 mt-1">0.0 m</div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <span class="text-xs text-slate-500 font-medium">수평 거리 (R)</span>
+                        <div id="m2Val" class="text-lg font-bold font-mono text-slate-800 dark:text-slate-100 mt-1">0.0 m</div>
+                    </div>`;
+            } else if (expKey === 'spring') {
+                metricsGrid.innerHTML = `
+                    <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <span class="text-xs text-slate-500 font-medium">변위 (x)</span>
+                        <div id="m1Val" class="text-lg font-bold font-mono text-slate-800 dark:text-slate-100 mt-1">0.0 m</div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <span class="text-xs text-slate-500 font-medium">복원력 (F)</span>
+                        <div id="m2Val" class="text-lg font-bold font-mono text-slate-800 dark:text-slate-100 mt-1">0.0 N</div>
+                    </div>`;
+            } else if (expKey === 'optics') {
+                metricsGrid.innerHTML = `
+                    <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <span class="text-xs text-slate-500 font-medium">상 위치 (b)</span>
+                        <div id="m1Val" class="text-lg font-bold font-mono text-slate-800 dark:text-slate-100 mt-1">0.0 cm</div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <span class="text-xs text-slate-500 font-medium">상 종류</span>
+                        <div id="m2Val" class="text-lg font-bold font-mono text-slate-800 dark:text-slate-100 mt-1">실상</div>
+                    </div>`;
+            }
+
+            // Populate Controls Panel
+            const container = document.getElementById('controlsContainer');
+            container.innerHTML = '';
+            const p = config.params;
+
+            if (expKey === 'pendulum') {
+                container.innerHTML = createSliderHtml('length', '줄의 길이 (L)', p.length, 0.5, 5.0, 0.1, 'm') +
+                                      createSliderHtml('mass', '추의 질량 (m)', p.mass, 0.1, 10.0, 0.1, 'kg') +
+                                      createSliderHtml('gravity', '중력가속도 (g)', p.gravity, 0, 25, 0.1, 'm/s²') +
+                                      createSliderHtml('damping', '공기 저항 (b)', p.damping, 0, 0.5, 0.01, '');
+            } else if (expKey === 'projectile') {
+                container.innerHTML = createSliderHtml('v0', '초기 속도 (v₀)', p.v0, 5, 50, 1, 'm/s') +
+                                      createSliderHtml('angleDeg', '발사 각도 (θ)', p.angleDeg, 0, 90, 1, '°') +
+                                      createSliderHtml('height', '발사 높이 (h)', p.height, 0, 50, 1, 'm') +
+                                      createSliderHtml('damping', '공기 저항 계수', p.damping, 0, 0.1, 0.01, '');
+            } else if (expKey === 'spring') {
+                container.innerHTML = createSliderHtml('k', '용수철 상수 (k)', p.k, 5, 100, 1, 'N/m') +
+                                      createSliderHtml('mass', '물체 질량 (m)', p.mass, 0.5, 10, 0.5, 'kg') +
+                                      createSliderHtml('damping', '감쇠 계수 (b)', p.damping, 0, 1.0, 0.05, '');
+            } else if (expKey === 'optics') {
+                container.innerHTML = `
+                    <div class="mb-3">
+                        <label class="font-medium text-slate-700 dark:text-slate-300 block mb-1">렌즈 종류</label>
+                        <select id="lensTypeSelect" class="w-full bg-slate-100 dark:bg-slate-700 p-2 rounded-lg text-xs font-semibold">
+                            <option value="convex" ${p.lensType==='convex'?'selected':''}>볼록 렌즈 (Convex)</option>
+                            <option value="concave" ${p.lensType==='concave'?'selected':''}>오목 렌즈 (Concave)</option>
+                        </select>
+                    </div>` +
+                    createSliderHtml('focalLength', '초점 거리 (f)', p.focalLength, 50, 200, 10, 'px') +
+                    createSliderHtml('objectDist', '물체 거리 (a)', p.objectDist, 50, 400, 5, 'px') +
+                    createSliderHtml('objectHeight', '물체 높이 (h)', p.objectHeight, 20, 100, 5, 'px');
+            }
+
+            // Populate Graph Mode Select
+            const gSelect = document.getElementById('graphModeSelect');
+            gSelect.innerHTML = config.graphModes.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+
+            // Guide Content
+            document.getElementById('guideTitle').textContent = config.title;
+            document.getElementById('guideContent').innerHTML = config.guide;
+
+            // Bind Slider Listeners
+            bindControlListeners();
+            resetSimulation();
+        }
+
+        function createSliderHtml(key, label, val, min, max, step, unit) {
+            return `
+                <div class="mb-3">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="font-medium text-slate-700 dark:text-slate-300">${label}</label>
+                        <div class="flex items-center space-x-1">
+                            <input type="number" id="${key}Input" min="${min}" max="${max}" step="${step}" value="${val}" class="w-16 px-1.5 py-0.5 text-right font-mono border rounded border-slate-300 dark:border-slate-600 bg-transparent text-slate-800 dark:text-slate-100 text-xs">
+                            <span class="text-slate-500 text-xs">${unit}</span>
+                        </div>
+                    </div>
+                    <input type="range" id="${key}Slider" min="${min}" max="${max}" step="${step}" value="${val}" class="w-full accent-blue-600 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg cursor-pointer">
+                </div>`;
+        }
+
+        function bindControlListeners() {
+            const p = experiments[activeExp].params;
+            Object.keys(p).forEach(key => {
+                const slider = document.getElementById(`${key}Slider`);
+                const input = document.getElementById(`${key}Input`);
+                if (slider && input) {
+                    slider.addEventListener('input', (e) => {
+                        input.value = e.target.value;
+                        p[key] = parseFloat(e.target.value);
+                        if (!isRunning) resetSimulation();
+                    });
+                    input.addEventListener('change', (e) => {
+                        slider.value = e.target.value;
+                        p[key] = parseFloat(e.target.value);
+                        if (!isRunning) resetSimulation();
+                    });
+                }
+            });
+
+            const lensSelect = document.getElementById('lensTypeSelect');
+            if (lensSelect) {
+                lensSelect.addEventListener('change', (e) => {
+                    experiments.optics.params.lensType = e.target.value;
+                    resetSimulation();
+                });
+            }
+        }
+
+        // Reset Simulation
+        function resetSimulation() {
+            simTime = 0;
+            history = [];
+            const p = experiments[activeExp].params;
+
+            if (activeExp === 'pendulum') {
+                p.angle = Math.PI / 6;
+                p.omega = 0;
+            } else if (activeExp === 'projectile') {
+                const rad = p.angleDeg * Math.PI / 180;
+                p.x = 0;
+                p.y = p.height;
+                p.vx = p.v0 * Math.cos(rad);
+                p.vy = p.v0 * Math.sin(rad);
+            } else if (activeExp === 'spring') {
+                p.x = 1.5;
+                p.v = 0;
+            }
+            
+            document.getElementById('timeDisplay').textContent = "0.00";
+        }
+
+        // Physics Update Step
+        function updatePhysics(dt) {
+            if (!isRunning || isDragging) return;
+
+            const effDt = dt * timeSpeed;
+            simTime += effDt;
+            document.getElementById('timeDisplay').textContent = simTime.toFixed(2);
+
+            if (activeExp === 'pendulum') {
+                const p = experiments.pendulum.params;
+                const alpha = -(p.gravity / p.length) * Math.sin(p.angle) - (p.damping / (p.mass * p.length)) * p.omega;
+                p.omega += alpha * effDt;
+                p.angle += p.omega * effDt;
+
+                // Record history
+                history.push({ time: simTime, angle: p.angle, velocity: p.omega });
+
+            } else if (activeExp === 'projectile') {
+                const p = experiments.projectile.params;
+                const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+                const FdragX = -p.damping * speed * p.vx;
+                const FdragY = -p.damping * speed * p.vy;
+
+                const ax = FdragX / p.mass;
+                const ay = -p.gravity + (FdragY / p.mass);
+
+                p.vx += ax * effDt;
+                p.vy += ay * effDt;
+                p.x += p.vx * effDt;
+                p.y += p.vy * effDt;
+
+                if (p.y <= 0) {
+                    p.y = 0;
+                    isRunning = false;
+                    document.getElementById('playText').textContent = '시작';
+                    document.getElementById('playIcon').setAttribute('data-lucide', 'play');
+                    lucide.createIcons();
+                }
+
+                history.push({ time: simTime, x: p.x, y: p.y, vy: p.vy });
+
+            } else if (activeExp === 'spring') {
+                const p = experiments.spring.params;
+                const force = -p.k * p.x - p.damping * p.v;
+                const a = force / p.mass;
+
+                p.v += a * effDt;
+                p.x += p.v * effDt;
+
+                history.push({ time: simTime, x: p.x, v: p.v });
+            }
+
+            if (history.length > maxHistory) history.shift();
+        }
+
+        // Render Pendulum
+        function renderPendulum() {
+            const w = simCanvas.width;
+            const h = simCanvas.height;
+            const p = experiments.pendulum.params;
+            const isDark = document.documentElement.classList.contains('dark');
+
+            const pivotX = w / 2;
+            const pivotY = h * 0.15;
+            const pxLen = p.length * (h * 0.55 / 5.0);
+
+            const bobX = pivotX + pxLen * Math.sin(p.angle);
+            const bobY = pivotY + pxLen * Math.cos(p.angle);
+
+            // Ceiling Mount
+            sCtx.strokeStyle = isDark ? '#64748b' : '#94a3b8';
+            sCtx.lineWidth = 4;
+            sCtx.beginPath(); sCtx.moveTo(pivotX - 30, pivotY); sCtx.lineTo(pivotX + 30, pivotY); sCtx.stroke();
+
+            // String
+            sCtx.strokeStyle = isDark ? '#f1f5f9' : '#334155';
+            sCtx.lineWidth = 2;
+            sCtx.beginPath(); sCtx.moveTo(pivotX, pivotY); sCtx.lineTo(bobX, bobY); sCtx.stroke();
+
+            // Bob
+            sCtx.fillStyle = '#2563eb';
+            sCtx.beginPath(); sCtx.arc(bobX, bobY, 16, 0, Math.PI * 2); sCtx.fill();
+
+            // Vectors
+            drawArrow(sCtx, bobX, bobY, 0, p.mass * p.gravity * 3, '#ef4444', 'Fg');
+            drawArrow(sCtx, bobX, bobY, -p.mass * p.gravity * Math.sin(p.angle) * 3 * Math.cos(p.angle), p.mass * p.gravity * Math.sin(p.angle) * 3 * Math.sin(p.angle), '#10b981', 'F_net');
+
+            // Metric Updates
+            const period = 2 * Math.PI * Math.sqrt(p.length / p.gravity);
+            document.getElementById('metricDisplayVal').textContent = period.toFixed(2) + 's';
+            document.getElementById('m1Val').textContent = `${(p.angle * 180 / Math.PI).toFixed(1)}°`;
+            document.getElementById('m2Val').textContent = `${Math.abs(p.omega * p.length).toFixed(2)} m/s`;
+
+            experiments.pendulum.bobPos = { x: bobX, y: bobY, pivotX, pivotY };
+        }
+
+        // Render Projectile Motion
+        function renderProjectile() {
+            const w = simCanvas.width;
+            const h = simCanvas.height;
+            const p = experiments.projectile.params;
+            const isDark = document.documentElement.classList.contains('dark');
+
+            const groundY = h - 50;
+            const scale = 4.0; // 1m = 4px
+
+            // Draw Ground
+            sCtx.strokeStyle = isDark ? '#475569' : '#cbd5e1';
+            sCtx.lineWidth = 2;
+            sCtx.beginPath(); sCtx.moveTo(0, groundY); sCtx.lineTo(w, groundY); sCtx.stroke();
+
+            // Cannon / Cannon Ball Position
+            const startX = 60;
+            const posX = startX + p.x * scale;
+            const posY = groundY - (p.y * scale);
+
+            // Draw Past Trajectory Line
+            if (history.length > 1) {
+                sCtx.strokeStyle = '#3b82f6';
+                sCtx.lineWidth = 2;
+                sCtx.setLineDash([4, 4]);
+                sCtx.beginPath();
+                history.forEach((pt, idx) => {
+                    const hx = startX + pt.x * scale;
+                    const hy = groundY - (pt.y * scale);
+                    if (idx === 0) sCtx.moveTo(hx, hy);
+                    else sCtx.lineTo(hx, hy);
+                });
+                sCtx.stroke();
+                sCtx.setLineDash([]);
+            }
+
+            // Draw Ball
+            sCtx.fillStyle = '#ef4444';
+            sCtx.beginPath(); sCtx.arc(posX, posY, 10, 0, Math.PI * 2); sCtx.fill();
+
+            // Velocity Vector Components
+            drawArrow(sCtx, posX, posY, p.vx * 2, -p.vy * 2, '#f59e0b', 'v');
+
+            // Metrics Update
+            document.getElementById('metricDisplayVal').textContent = simTime.toFixed(2) + 's';
+            document.getElementById('m1Val').textContent = `${p.y.toFixed(1)} m`;
+            document.getElementById('m2Val').textContent = `${p.x.toFixed(1)} m`;
+        }
+
+        // Render Spring Motion
+        function renderSpring() {
+            const w = simCanvas.width;
+            const h = simCanvas.height;
+            const p = experiments.spring.params;
+            const isDark = document.documentElement.classList.contains('dark');
+
+            const centerY = h / 2;
+            const eqX = w / 2;
+            const scale = 80; // px per meter
+            const massX = eqX + p.x * scale;
+
+            // Wall
+            sCtx.fillStyle = isDark ? '#475569' : '#cbd5e1';
+            sCtx.fillRect(40, centerY - 60, 15, 120);
+
+            // Spring Coil Drawing
+            sCtx.strokeStyle = isDark ? '#94a3b8' : '#475569';
+            sCtx.lineWidth = 3;
+            sCtx.beginPath();
+            sCtx.moveTo(55, centerY);
+            const coils = 15;
+            const step = (massX - 55 - 20) / coils;
+            for (let i = 0; i < coils; i++) {
+                const x = 55 + i * step;
+                const y = centerY + (i % 2 === 0 ? -15 : 15);
+                sCtx.lineTo(x, y);
+            }
+            sCtx.lineTo(massX - 20, centerY);
+            sCtx.stroke();
+
+            // Mass Box
+            sCtx.fillStyle = '#10b981';
+            sCtx.fillRect(massX - 20, centerY - 20, 40, 40);
+
+            // Vector
+            const force = -p.k * p.x;
+            drawArrow(sCtx, massX, centerY, force * 1.5, 0, '#ef4444', 'F');
+
+            // Metrics Update
+            const period = 2 * Math.PI * Math.sqrt(p.mass / p.k);
+            document.getElementById('metricDisplayVal').textContent = period.toFixed(2) + 's';
+            document.getElementById('m1Val').textContent = `${p.x.toFixed(2)} m`;
+            document.getElementById('m2Val').textContent = `${force.toFixed(1)} N`;
+        }
+
+        // Render Lens Optics Ray Tracing
+        function renderOptics() {
+            const w = simCanvas.width;
+            const h = simCanvas.height;
+            const p = experiments.optics.params;
+            const isDark = document.documentElement.classList.contains('dark');
+
+            const axisY = h / 2;
+            const lensX = w / 2;
+
+            // Optical Axis
+            sCtx.strokeStyle = isDark ? '#475569' : '#cbd5e1';
+            sCtx.setLineDash([5, 5]);
+            sCtx.beginPath(); sCtx.moveTo(0, axisY); sCtx.lineTo(w, axisY); sCtx.stroke();
+            sCtx.setLineDash([]);
+
+            // Lens Drawing
+            sCtx.strokeStyle = '#3b82f6';
+            sCtx.lineWidth = 3;
+            sCtx.beginPath();
+            if (p.lensType === 'convex') {
+                sCtx.arc(lensX - 180, axisY, 200, -Math.PI / 6, Math.PI / 6);
+                sCtx.arc(lensX + 180, axisY, 200, Math.PI - Math.PI / 6, Math.PI + Math.PI / 6);
+            } else {
+                sCtx.moveTo(lensX - 10, axisY - 80); sCtx.lineTo(lensX + 10, axisY - 80);
+                sCtx.lineTo(lensX - 10, axisY + 80); sCtx.lineTo(lensX + 10, axisY + 80);
+            }
+            sCtx.stroke();
+
+            // Focal Points (F1, F2)
+            sCtx.fillStyle = '#ef4444';
+            sCtx.beginPath(); sCtx.arc(lensX - p.focalLength, axisY, 4, 0, Math.PI*2); sCtx.fill();
+            sCtx.beginPath(); sCtx.arc(lensX + p.focalLength, axisY, 4, 0, Math.PI*2); sCtx.fill();
+
+            // Object Arrow
+            const objX = lensX - p.objectDist;
+            const objTopY = axisY - p.objectHeight;
+            drawArrow(sCtx, objX, axisY, 0, -p.objectHeight, '#f59e0b', 'Object');
+
+            // Lens Formula Calculation
+            // 1/f = 1/a + 1/b => b = (f * a) / (a - f)
+            const f = p.lensType === 'convex' ? p.focalLength : -p.focalLength;
+            const a = p.objectDist;
+            const b = (f * a) / (a - f);
+            const imgHeight = -(b / a) * p.objectHeight;
+            const imgX = lensX + b;
+            const imgTopY = axisY - imgHeight;
+
+            // Ray 1: Parallel to Axis -> through Focal Point
+            sCtx.strokeStyle = '#10b981';
+            sCtx.lineWidth = 1.5;
+            sCtx.beginPath();
+            sCtx.moveTo(objX, objTopY);
+            sCtx.lineTo(lensX, objTopY);
+            sCtx.lineTo(imgX, imgTopY);
+            sCtx.stroke();
+
+            // Ray 2: Through Center of Lens
+            sCtx.strokeStyle = '#ec4899';
+            sCtx.beginPath();
+            sCtx.moveTo(objX, objTopY);
+            sCtx.lineTo(imgX, imgTopY);
+            sCtx.stroke();
+
+            // Image Arrow
+            if (Math.abs(b) < 1000) {
+                drawArrow(sCtx, imgX, axisY, 0, -imgHeight, '#8b5cf6', b > 0 ? 'Real Image' : 'Virtual Image');
+                document.getElementById('m1Val').textContent = `${b.toFixed(1)} px`;
+                document.getElementById('m2Val').textContent = b > 0 ? '실상' : '허상';
+            } else {
+                document.getElementById('m1Val').textContent = '무한대';
+                document.getElementById('m2Val').textContent = '상 없음';
+            }
+
+            document.getElementById('metricDisplayVal').textContent = Math.abs(b / a).toFixed(2);
+        }
+
+        // Render Graph Canvas
+        function renderGraph() {
+            const w = graphCanvas.width;
+            const h = graphCanvas.height;
+            const isDark = document.documentElement.classList.contains('dark');
+            gCtx.clearRect(0, 0, w, h);
+
+            if (history.length < 2) return;
+
+            const midY = h / 2;
+            gCtx.strokeStyle = isDark ? '#334155' : '#e2e8f0';
+            gCtx.beginPath(); gCtx.moveTo(0, midY); gCtx.lineTo(w, midY); gCtx.stroke();
+
+            gCtx.strokeStyle = '#3b82f6';
+            gCtx.lineWidth = 2;
+            gCtx.beginPath();
+
+            const mode = document.getElementById('graphModeSelect').value;
+
+            history.forEach((pt, idx) => {
+                const x = (idx / maxHistory) * w;
+                let val = 0;
+                if (activeExp === 'pendulum') val = mode === 'velocity' ? pt.velocity * 20 : pt.angle * 40;
+                else if (activeExp === 'projectile') val = mode === 'vy_t' ? pt.vy * 2 : pt.y * 2;
+                else if (activeExp === 'spring') val = pt.x * 30;
+
+                const y = midY - val;
+                if (idx === 0) gCtx.moveTo(x, y);
+                else gCtx.lineTo(x, y);
+            });
+            gCtx.stroke();
+        }
+
+        // Main Loop
+        let lastTime = 0;
+        function animate(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+            lastTime = timestamp;
+
+            sCtx.clearRect(0, 0, simCanvas.width, simCanvas.height);
+
+            updatePhysics(dt);
+
+            if (activeExp === 'pendulum') renderPendulum();
+            else if (activeExp === 'projectile') renderProjectile();
+            else if (activeExp === 'spring') renderSpring();
+            else if (activeExp === 'optics') renderOptics();
+
+            renderGraph();
+
+            requestAnimationFrame(animate);
+        }
+
+        // Tab Switching Event Listeners
+        document.querySelectorAll('.exp-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.exp-tab-btn').forEach(b => {
+                    b.classList.remove('bg-white', 'dark:bg-slate-700', 'text-blue-600', 'dark:text-blue-400', 'shadow-sm');
+                    b.classList.add('text-slate-600', 'dark:text-slate-400');
+                });
+                btn.classList.add('bg-white', 'dark:bg-slate-700', 'text-blue-600', 'dark:text-blue-400', 'shadow-sm');
+                btn.classList.remove('text-slate-600', 'dark:text-slate-400');
+
+                setupUIForExperiment(btn.getAttribute('data-exp'));
+            });
+        });
+
+        // Simulation Start / Pause
+        document.getElementById('startPauseBtn').addEventListener('click', () => {
+            isRunning = !isRunning;
+            document.getElementById('playText').textContent = isRunning ? '일시정지' : '시작';
+            document.getElementById('playIcon').setAttribute('data-lucide', isRunning ? 'pause' : 'play');
+            lucide.createIcons();
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', resetSimulation);
+
+        // Speed Control Buttons
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.speed-btn').forEach(b => {
+                    b.classList.remove('bg-white', 'dark:bg-slate-600', 'text-blue-600', 'dark:text-blue-400', 'shadow-sm');
+                });
+                btn.classList.add('bg-white', 'dark:bg-slate-600', 'text-blue-600', 'dark:text-blue-400', 'shadow-sm');
+                timeSpeed = parseFloat(btn.getAttribute('data-speed'));
+            });
+        });
+
+        // Modal Control
+        const modal = document.getElementById('guideModal');
+        const toggleModal = (show) => modal.classList.toggle('hidden', !show);
+        document.getElementById('openGuideBtn').addEventListener('click', () => toggleModal(true));
+        document.getElementById('openGuideBtnMobile').addEventListener('click', () => toggleModal(true));
+        document.getElementById('closeGuideBtn').addEventListener('click', () => toggleModal(false));
+        document.getElementById('confirmGuideBtn').addEventListener('click', () => toggleModal(false));
+
+        // Dark mode Toggle
+        const toggleTheme = () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            const iconName = isDark ? 'sun' : 'moon';
+            document.getElementById('themeIcon').setAttribute('data-lucide', iconName);
+            lucide.createIcons();
+        };
+        document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+        document.getElementById('themeToggleBtnMobile').addEventListener('click', toggleTheme);
+
+        // Window Onload Init
+        window.onload = function() {
+            resizeCanvases();
+            setupUIForExperiment('pendulum');
+            requestAnimationFrame(animate);
+
+            // 빠른 시작 버튼 이벤트
+            document.getElementById('quickStartBtn').addEventListener('click', () => {
+                if (!isRunning) {
+                    isRunning = true;
+                    document.getElementById('playText').textContent = '일시정지';
+                    document.getElementById('playIcon').setAttribute('data-lucide', 'pause');
+                    lucide.createIcons();
+                }
+            });
+        };
+    </script>
+</body>
+</html>
